@@ -96,6 +96,15 @@ fi
 # 3. conversion, change extension, not filename; then archive manuscript
 ######
 
+make_title() {
+	t="$(get_info "name:" $1)-$(get_info "^title:" $1)"
+	echo $(echo $t | sed -e 's/[[:space:]]/_/g')
+}
+
+get_info() {
+	echo $(grep -m1 $1 $2 | cut -d: -f2 | cut -d# -f1 | sed -e 's/^[[:space:]]*//' | sed 's/"//g')
+}
+
 # prepare daily subdirectory for layout-versions archiving
 mkdir -p $workingDir/archive/layout-versions/$today
 
@@ -105,10 +114,11 @@ converttohtml() {
 	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc --email-obfuscation=references --section-divs --self-contained --template="$workingDir/z-lib/article.html5" --write=html5 --default-image-extension=.low.jpg -o "$workingDir/2-publication/${manuscript%.md}.html"
 }
 converttopdf() {
-	# PDF conversion with Pandoc # -N --toc
-	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc --template="$workingDir/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/2-publication/${manuscript%.md}.pdf"
+	sed -i -e 's/^\(#.*\)\.\s*$/\1/' $manuscript
+	newtitle="$(make_title $manuscript)"
+	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" --lua-filter "$workingDir/z-lib/abstract-section.lua" -N --toc --listings --citeproc --template="$workingDir/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/2-publication/$newtitle.pdf"
 	# LaTeX
-	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc --template="$workingDir/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/2-publication/${manuscript%.md}.tex"
+	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" --lua-filter "$workingDir/z-lib/abstract-section.lua" -N --toc --listings --citeproc --template="$workingDir/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/2-publication/$newtitle.tex"
 }
 converttoxml() {
 	# JATS XML
@@ -139,11 +149,11 @@ converttoformats() {
 		if [ $p ] || [ $h ] || [ $x ] || [ $w ]; then
 			echo -e "\tconverting only to the specified formats"
 		else
-			echo -e "\tno options given, preparing all formats"
-			printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   no options given, preparing all formats" >> "$workingDir/$eventslog"
-			converttohtml
+			echo -e "\tno options given, converting to PDF as default"
+			printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   no options given, converting to PDF as default" >> "$workingDir/$eventslog"
+			# converttohtml
 			converttopdf
-			converttoxml
+			# converttoxml
 			# no converttoword, use it only when explicitly requested
 		fi
 

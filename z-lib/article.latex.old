@@ -14,7 +14,6 @@ $if(background-image)$
 \includegraphics[width=\paperwidth]{$background-image$}%
 }
 $endif$
-\usepackage{csquotes}
 \usepackage{pgfpages}
 \setbeamertemplate{caption}[numbered]
 \setbeamertemplate{caption label separator}{: }
@@ -218,11 +217,6 @@ $endif$
 $if(lhs)$
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
 $endif$
-$if(listings-no-page-break)$
-\usepackage{etoolbox}
-\BeforeBeginEnvironment{lstlisting}{\par\noindent\begin{minipage}{\linewidth}}
-\AfterEndEnvironment{lstlisting}{\end{minipage}\par\addvspace{\topskip}}
-$endif$
 $if(highlighting-macros)$
 $highlighting-macros$
 $endif$
@@ -239,7 +233,6 @@ $else$
 \IfFileExists{footnote.sty}{\usepackage{footnote}\makesavenoteenv{longtable}}{}
 $endif$
 $endif$
-\usepackage{graphicx}
 $if(graphics)$
 \usepackage{graphicx,grffile}
 \makeatletter
@@ -330,21 +323,6 @@ $-- Various customizations --$
 \captionsetup[figure]{labelformat=empty}
 \captionsetup[table]{labelformat=empty}
 
-% Workaround/bugfix from jannick0.
-% See https://github.com/jgm/pandoc/issues/4302#issuecomment-360669013)
-% or https://github.com/Wandmalfarbe/pandoc-latex-template/issues/2
-%
-% Redefine the verbatim environment 'Highlighting' to break long lines (with
-% the help of fvextra). Redefinition is necessary because it is unlikely that
-% pandoc includes fvextra in the default template.
-\usepackage{fvextra}
-\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,fontsize=$if(code-block-font-size)$$code-block-font-size$$else$\footnotesize$endif$,commandchars=\\\{\}}
-
-\renewenvironment{quote}%
-               {\list{}{\rightmargin\leftmargin}%
-                \item[]\samepage}% <- The effect of \samepage is local!!!
-               {\endlist}
-
 % custom: icons
 % fix for custom icons (fontawesome), since TeXLive 2018
 \usepackage{fontspec}
@@ -425,7 +403,7 @@ $endif$
   \let\Begin\begin
   \let\End\end
 }
-\usepackage{soul}
+
 % custom: define \linethickness
 \renewcommand{\linethickness}{0.3pt}
 % custom: draft mark with date
@@ -453,6 +431,13 @@ $if(lang)$
 $if(babel-newcommands)$
   $babel-newcommands$
 $endif$
+\else
+  % load polyglossia as late as possible as it *could* call bidi if RTL lang (e.g. Hebrew or Arabic)
+  \usepackage{polyglossia}
+  \setmainlanguage[$polyglossia-lang.options$]{$polyglossia-lang.name$}
+$for(polyglossia-otherlangs)$
+  \setotherlanguage[$polyglossia-otherlangs.options$]{$polyglossia-otherlangs.name$}
+$endfor$
 \fi
 $endif$
 $if(dir)$
@@ -482,7 +467,7 @@ $endif$
 $if(csl-refs)$
 \newlength{\cslhangindent}
 \setlength{\cslhangindent}{1.5em}
-\newenvironment{CSLReferences}%
+\newenvironment{cslreferences}%
   {$if(csl-hanging-indent)$\setlength{\parindent}{0pt}%
   \everypar{\setlength{\hangindent}{\cslhangindent}}\ignorespaces$endif$}%
   {\par}%
@@ -490,34 +475,31 @@ $if(csl-refs)$
 $endif$
 
 $if(title)$
-\title{$if(blocktitle)$$blocktitle$$else$$title$$endif$$if(subtitle)$\\ \large $subtitle$$endif$$for(thanks)$\thanks{$thanks$}$sep$~~$endfor$$if(correction)$$if(correction.notice)$$else$$if(thanks)$~~$endif$\thanks{$correction.text$}$endif$$endif$}
+\title{$if(blocktitle)$$blocktitle$$else$$title$$endif$$for(thanks)$\thanks{$thanks$}$sep$~~$endfor$$if(correction)$$if(correction.notice)$$else$$if(thanks)$~~$endif$\thanks{$correction.text$}$endif$$endif$}
 $endif$
-
-\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+$if(subtitle)$
+\providecommand{\subtitle}[1]{}
+\subtitle{$subtitle$}
+$endif$
 $if(author)$ % custom: affiliation only if "affiliationonly" is true, else boxed version below abstract
-\author{$for(author)$$author.name$$if(affiliationonly)$$if(author.affiliation)$\thanks{$for(author.affiliation)$$author.affiliation$$sep$; $endfor$$if(author.email)$; {\scriptsize\faEnvelope}~$author.email$$endif$$if(author.orcid)$; \aiOrcid~\url{$author.orcid$}$endif$}$else$$if(author.corresp)$\thanks{{\scriptsize\faEnvelope}~$author.email$$if(author.orcid)$; \aiOrcid~\url{$author.orcid$}$endif$}$endif$$endif$$endif$$sep$ \and $endfor$}
+\author{$for(author)$$author.name$$if(affiliationonly)$$if(author.affiliation)$\thanks{$for(author.affiliation)$$author.affiliation$$sep$; $endfor$$if(author.corresp)$; {\scriptsize\faEnvelope}~$author.email$$endif$$if(author.orcid)$; \aiOrcid~\url{$author.orcid$}$endif$}$else$$if(author.corresp)$\thanks{{\scriptsize\faEnvelope}~$author.email$$if(author.orcid)$; \aiOrcid~\url{$author.orcid$}$endif$}$endif$$endif$$endif$$sep$ \and $endfor$}
 $endif$
-
 $if(institute)$
 \providecommand{\institute}[1]{}
 \institute{$for(institute)$$institute$$sep$ \and $endfor$}
 $endif$
-\renewcommand{\thefootnote}{\arabic{footnote}}
-
 % custom: dates
 $if(date)$ % normal publication date (simple text)
 \date{\normalsize $date$}
 $else$
 $if(dates)$ % submitted, revised, accepted, published dates, in YYYY-MM-DD
 \date{\small $if(dates.submitted)$$localization.submitted$: \DTMdate{$dates.submitted$}$if(dates.accepted)$ -- $else$$if(dates.published)$ -- $endif$$endif$$endif$$if(dates.revised)$$localization.revised$: $for(dates.revised)$\DTMdate{$dates.revised$}$sep$; $endfor$ \\ $endif$$if(dates.accepted)$$localization.accepted$: \DTMdate{$dates.accepted$}$if(dates.published)$ -- $endif$$endif$$if(dates.published)$$localization.published$: $if(draft)$\color{red} $endif$\DTMdate{$dates.published$}$endif$}
-$else$
-\date{}
 $endif$
 $endif$ % end custom dates
 
 $-- custom: spacing for thanks (firstpage) --$
-%\setlength{\thanksmarkwidth}{1.8em}
-%\thanksfootextra{}{\hspace{5pt}}
+\setlength{\thanksmarkwidth}{1.8em}
+\thanksfootextra{}{\hspace{5pt}}
 
 $-- custom: hyphenation rules --$
 $if(hyphenation)$
@@ -614,6 +596,7 @@ $if(author.orcid)$ \\ \aiOrcid~\url{$author.orcid$}$endif$$if(author.corresp)$\\
 $endfor$
 $endif$
 $endif$ % if(title)
+
 $for(include-before)$
 $include-before$
 
@@ -647,7 +630,7 @@ $if(notitlepage)$
 $if(titlepagespace)$
 \vspace{$titlepagespace$}
 $else$
-\vspace{1cm}
+\vspace{5cm}
 $endif$
 $else$
 \newpage

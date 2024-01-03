@@ -80,10 +80,11 @@ printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts from
 		if [ "${manuscript}" != "${manuscript%.${EXT1}}" ]; then
 			printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   ${manuscript}: trying to convert it in Markdown..." >> "$workingDir/$eventslog"
 			# actual conversion with Pandoc
-			if pandoc --wrap=none --atx-headers -o "$tempdir/${manuscript%.${EXT1}}.md" "$manuscript" ; then
+			safename=$(echo "${manuscript%.${EXT1}}" | tr "[:upper:]" "[:lower:]" | tr "[:blank:]" "_")
+			if pandoc --wrap=none --markdown-headings=atx --extract-media="${safename}" -s -t markdown-simple_tables-multiline_tables-grid_tables --lua-filter="$workingDir/z-lib/image-resize.lua" -o "$tempdir/${manuscript%.${EXT1}}.md" "$manuscript" ; then
 				printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   ... ${manuscript} was converted!" >> "$workingDir/$eventslog"
 				# archive the processed manuscript
-				mv "$manuscript" "$workingDir/archive/original-version/${manuscript%.${EXT1}}-$(date +"%Y-%m-%dT%H:%M:%S").${EXT1}"
+				# mv "$manuscript" "$workingDir/archive/original-version/${manuscript%.${EXT1}}-$(date +"%Y-%m-%dT%H:%M:%S").${EXT1}"
 				printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   ${manuscript} archived" >> "$workingDir/$eventslog"
 			else
 				# pandoc returned errors, print a warning and don't archive
@@ -93,7 +94,7 @@ printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts from
 		elif [ "${manuscript}" != "${manuscript%.${EXT2}}" ]; then
 			printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   ${manuscript}: trying to convert it in Markdown..." >> "$workingDir/$eventslog"
 			# actual conversion with Pandoc
-			if pandoc --wrap=none --atx-headers -o "$tempdir/${manuscript%.${EXT2}}.md" "$manuscript" ; then
+			if pandoc --wrap=none --markdown-headings=atx --extract-media="./${manuscript%.${EXT2}}" -o "$tempdir/${manuscript%.${EXT2}}.md" "$manuscript" ; then
 				printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   ... ${manuscript} was converted!" >> "$workingDir/$eventslog"
 				# archive the processed manuscript - TEST: cp instead of mv
 				cp "$manuscript" "$workingDir/archive/original-version/${manuscript%.${EXT2}}-$(date +"%Y-%m-%dT%H:%M:%S").${EXT2}"
@@ -106,7 +107,7 @@ printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts from
 		elif [ "${manuscript}" != "${manuscript%.${EXT3}}" ]; then
 			printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   ${manuscript}: trying to convert it in Markdown..." >> "$workingDir/$eventslog"
 			# actual conversion with Pandoc
-			if pandoc --wrap=none --atx-headers -o "$tempdir/${manuscript%.${EXT3}}.md" "$manuscript" ; then
+			if pandoc --wrap=none --markdown-headings=atx --extract-media="./${manuscript%.${EXT3}}" -o "$tempdir/${manuscript%.${EXT3}}.md" "$manuscript" ; then
 				printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   ... ${manuscript} was converted!" >> "$workingDir/$eventslog"
 				# archive the processed manuscript
 				mv "$manuscript" "$workingDir/archive/original-version/${manuscript%.${EXT3}}-$(date +"%Y-%m-%dT%H:%M:%S").${EXT3}"
@@ -187,6 +188,7 @@ shopt -s nullglob # Sets nullglob
 				echo "$oldname does not need to be renamed"
 			else
 				mv "$oldname" "$safename"
+				mv "$workingDir/0-original/${safename%.md}" "$workingDir/1-layout/${safename%.md}"
 				printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   [WARN] $oldname has an unexpected name, converted in a safer one!" >> "$workingDir/$eventslog"
 				echo WARN=true >> $tempvar
 			fi
