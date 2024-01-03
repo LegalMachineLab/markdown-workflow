@@ -102,7 +102,7 @@ make_title() {
 }
 
 get_info() {
-	echo $(grep -m1 $1 $2 | cut -d: -f2 | cut -d# -f1 | sed -e 's/^[[:space:]]*//' | sed 's/"//g')
+	echo $(grep -m1 $1 $2 | cut -d: -f2 | cut -d# -f1 | sed -e 's/^[[:space:]]*//' | sed 's/"//g' | sed 's/\//_/g')
 }
 
 # prepare daily subdirectory for layout-versions archiving
@@ -114,7 +114,7 @@ converttohtml() {
 	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc --email-obfuscation=references --section-divs --self-contained --template="$workingDir/z-lib/article.html5" --write=html5 --default-image-extension=.low.jpg -o "$workingDir/2-publication/${manuscript%.md}.html"
 }
 converttopdf() {
-	sed -i -e 's/^\(#.*\)\.\s*$/\1/' $manuscript
+	echo $(sed -i -e 's/^\(#.*\)\.\s*$/\1/' $manuscript)
 	newtitle="$(make_title $manuscript)"
 	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" --lua-filter "$workingDir/z-lib/abstract-section.lua" -N --toc --listings --citeproc --template="$workingDir/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/2-publication/$newtitle.pdf"
 	# LaTeX
