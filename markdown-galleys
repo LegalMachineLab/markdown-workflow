@@ -113,25 +113,25 @@ mkdir -p $workingDir/data/archive/layout-versions/$today
 # conversion functions
 converttohtml() {
 	# HTML conversion with Pandoc  --self-contained
-	pandoc "$ROOT/z-lib/journal.yaml" "$ROOT/z-lib/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc --email-obfuscation=references --section-divs --self-contained --template="$ROOT/z-lib/article.html5" --write=html5 --default-image-extension=.low.jpg -o "$workingDir/data/2-publication/${manuscript%.md}.html"
+	pandoc "$ROOT/z-lib/journal.yaml" "$workingDir/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc --email-obfuscation=references --section-divs --self-contained --template="$ROOT/z-lib/article.html5" --write=html5 --default-image-extension=.low.jpg -o "$workingDir/data/2-publication/${manuscript%.md}.html"
 }
 converttopdf() {
 	echo $(sed -i -e 's/^\(#.*\)\.\s*$/\1/' $manuscript)
 	newtitle="$(make_title $manuscript)"
-	pandoc "$ROOT/z-lib/journal.yaml" "$ROOT/z-lib/issue.yaml" "${manuscript}" --lua-filter "$ROOT/z-lib/abstract-section.lua" -N --toc --listings --citeproc --template="$ROOT/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/data/2-publication/$newtitle.pdf"
+	pandoc "$ROOT/z-lib/journal.yaml" "$workingDir/issue.yaml" "${manuscript}" --lua-filter "$ROOT/z-lib/abstract-section.lua" -N --toc --listings --citeproc --template="$ROOT/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/data/2-publication/$newtitle.pdf"
 	# LaTeX
-	pandoc "$ROOT/z-lib/journal.yaml" "$ROOT/z-lib/issue.yaml" "${manuscript}" --lua-filter "$ROOT/z-lib/abstract-section.lua" -N --toc --listings --citeproc --template="$ROOT/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/data/2-publication/$newtitle.tex"
+	pandoc "$ROOT/z-lib/journal.yaml" "$workingDir/issue.yaml" "${manuscript}" --lua-filter "$ROOT/z-lib/abstract-section.lua" -N --toc --listings --citeproc --template="$ROOT/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/data/2-publication/$newtitle.tex"
 }
 converttoxml() {
 	# JATS XML
-	pandoc "$ROOT/z-lib/journal.yaml" "$ROOT/z-lib/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc --template="$ROOT/z-lib/article.jats" --write=jats --default-image-extension=.jpg -s -o "$workingDir/data/2-publication/${manuscript%.md}.jats.xml"
+	pandoc "$ROOT/z-lib/journal.yaml" "$workingDir/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc --template="$ROOT/z-lib/article.jats" --write=jats --default-image-extension=.jpg -s -o "$workingDir/data/2-publication/${manuscript%.md}.jats.xml"
 	# TEI XML
-	#pandoc "$ROOT/z-lib/journal.yaml" "$ROOT/z-lib/issue.yaml" "${manuscript}" --toc -N --filter=pandoc-citeproc --template="$ROOT/z-lib/article.tei" --write=tei -s -o "$workingDir/data/2-publication/${manuscript%.md}.tei.xml"
+	#pandoc "$ROOT/z-lib/journal.yaml" "$workingDir/issue.yaml" "${manuscript}" --toc -N --filter=pandoc-citeproc --template="$ROOT/z-lib/article.tei" --write=tei -s -o "$workingDir/data/2-publication/${manuscript%.md}.tei.xml"
 }
 # this is just a test
 converttoword() {
 	# DOCX format # --reference-doc="$ROOT/z-lib/article.docx"
-	pandoc "$ROOT/z-lib/journal.yaml" "$ROOT/z-lib/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc  -w docx+styles  -s -o "$workingDir/data/2-publication/${manuscript%.md}.docx"
+	pandoc "$ROOT/z-lib/journal.yaml" "$workingDir/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc  -w docx+styles  -s -o "$workingDir/data/2-publication/${manuscript%.md}.docx"
 }
 # generic function that calls the specific conversions
 converttoformats() {

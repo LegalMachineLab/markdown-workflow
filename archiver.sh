@@ -47,7 +47,7 @@ cp -a "$workingDir/1-layout/"*.md "$tempdir"
 	cd "$tempdir"
 	for layout in *.md ; do
 		printf "\n\n" >> "${layout}"
-		cat "$workingDir/z-lib/issue.yaml" >> "${layout}"
+		cat "$workingDir/issue.yaml" >> "${layout}"
 		wait
 		cat "$workingDir/z-lib/journal.yaml" >> "${layout}"
 		wait
