@@ -12,7 +12,9 @@
 # 0. events log and other checks
 #####
 # also: am I in the right place? (is there z-lib folder?)
-if . ./z-lib/events-logger.sh ; then
+
+ROOT=/app
+if . $ROOT/z-lib/events-logger.sh ; then
 	echo "Starting events registration in $eventslog"
 	# set the current working directory for future cd
 	workingDir="$PWD"
@@ -81,7 +83,7 @@ printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts from
 			printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   ${manuscript}: trying to convert it in Markdown..." >> "$workingDir/$eventslog"
 			# actual conversion with Pandoc
 			safename=$(echo "${manuscript%.${EXT1}}" | tr "[:upper:]" "[:lower:]" | tr "[:blank:]" "_")
-			if pandoc --wrap=none --markdown-headings=atx --extract-media="${safename}" -s -t markdown-simple_tables-multiline_tables-grid_tables --lua-filter="$workingDir/z-lib/image-resize.lua" -o "$tempdir/${manuscript%.${EXT1}}.md" "$manuscript" ; then
+			if pandoc --wrap=none --markdown-headings=atx --extract-media="${safename}" -s -t markdown-simple_tables-multiline_tables-grid_tables --lua-filter="$ROOT/z-lib/image-resize.lua" -o "$tempdir/${manuscript%.${EXT1}}.md" "$manuscript" ; then
 				printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   ... ${manuscript} was converted!" >> "$workingDir/$eventslog"
 				# archive the processed manuscript
 				# mv "$manuscript" "$workingDir/archive/original-version/${manuscript%.${EXT1}}-$(date +"%Y-%m-%dT%H:%M:%S").${EXT1}"
@@ -228,7 +230,7 @@ shopt -s nullglob # Sets nullglob
 
 	# add empty YAML at the start of each article
 	printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Prepending metadata YAML..." >> "$workingDir/$eventslog"
-	yaml_file=$workingDir/z-lib/article.yaml
+	yaml_file=$ROOT/z-lib/article.yaml
 	size=$(wc -c < "$yaml_file")
 
 	for file in *.md; do

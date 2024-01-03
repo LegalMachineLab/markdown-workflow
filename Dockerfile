@@ -6,4 +6,5 @@ workdir /app
 copy . /app
 # Change the ownership of the working directory to the non-root user "user"
 RUN chown -R 1000:1000 /app
+ENV PATH="${PATH}:/app"
 # USER 1000
