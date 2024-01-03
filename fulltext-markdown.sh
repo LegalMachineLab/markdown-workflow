@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# Convert each article manuscript (in ODT or DOCX) in markdown, and save in "./1-layout/" directory.
+# Convert each article manuscript (in ODT or DOCX) in markdown, and save in "./data/1-layout/" directory.
 # Also archive a backup copy of the results, log all the events and rename converted files
-# Please provide the manuscript in "./0-original/"
+# Please provide the manuscript in "./data/0-original/"
 #
 # Author: Piero Grandesso
 # https://github.com/piero-g/markdown-workflow
@@ -34,7 +34,7 @@ mkdir -p $workingDir/{archive/{original-version,first-conversion,editing-ready},
 # creating only the directories pertaining to this part of the workflow
 printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Preparing the directory structure, if not ready" >> "$workingDir/$eventslog"
 
-# now a temporary folder
+# now a temporary folders
 tempdir=`mktemp -d $workingDir/tmp.XXXXXXXXXXXX`
 
 # temporary file for storing variables
@@ -43,21 +43,21 @@ tempvar=`mktemp $workingDir/tmp-values.XXXXXXXXX.sh`
 ######
 # 2. conversion, change extension, not filename; then archive manuscript
 ######
-printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts from ./0-original..." >> "$workingDir/$eventslog"
+printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts from ./data/0-original..." >> "$workingDir/$eventslog"
 ( # start subshell
-	if cd ./0-original ; then
+	if cd ./data/0-original ; then
 		:
 	else
 		# if "old" original folder...
 		if cd ./original ; then
 			cd ..
-			echo "Moving old ./original to its new name: ./0-original"
-			mv ./original ./0-original
-			printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Moving old ./original to its new name: ./0-original." >> "$workingDir/$eventslog"
-			cd ./0-original
+			echo "Moving old ./original to its new name: ./data/0-original"
+			mv ./original ./data/0-original
+			printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Moving old ./original to its new name: ./data/0-original." >> "$workingDir/$eventslog"
+			cd ./data/0-original
 		else
-			echo "WARNING: ./0-original directory not found!"
-			printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] WARNING: ./0-original directory not found! Aborting." >> "$workingDir/$eventslog"
+			echo "WARNING: ./data/0-original directory not found!"
+			printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] WARNING: ./data/0-original directory not found! Aborting." >> "$workingDir/$eventslog"
 			exit 77
 		fi
 	fi
@@ -70,7 +70,7 @@ printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts from
 	if [ ${#EXT[@]} -gt 0 ]; then
 		: # valid files, ok
 	else
-		printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   [WARN] No valid files found in ./0-original, exiting now" >> "$workingDir/$eventslog"
+		printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   [WARN] No valid files found in ./data/0-original, exiting now" >> "$workingDir/$eventslog"
 		echo "WARNING: no valid files!"
 		exit 77
 	fi
@@ -121,7 +121,7 @@ printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts from
 	done
 	printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Original manuscripts are archived in ./archive/original-version with timestamp; something left behind?..." >> "$workingDir/$eventslog"
 
-	# check if any file is left behind in ./0-original
+	# check if any file is left behind in ./data/0-original
 	for manuscript in * .*; do
 		[ -f "$manuscript" ] || continue
 		printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   [WARN] ${manuscript} was skipped (had errors, wrong extension or it is hidden)" >> "$workingDir/$eventslog"
@@ -188,7 +188,7 @@ shopt -s nullglob # Sets nullglob
 				echo "$oldname does not need to be renamed"
 			else
 				mv "$oldname" "$safename"
-				mv "$workingDir/0-original/${safename%.md}" "$workingDir/1-layout/${safename%.md}"
+				mv "$workingDir/data/0-original/${safename%.md}" "$workingDir/data/1-layout/${safename%.md}"
 				printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   [WARN] $oldname has an unexpected name, converted in a safer one!" >> "$workingDir/$eventslog"
 				echo WARN=true >> $tempvar
 			fi
@@ -202,7 +202,7 @@ shopt -s nullglob # Sets nullglob
 	######
 
 	# folders for media files
-	printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Creating folders for media files in ./1-layout" >> "$workingDir/$eventslog"
+	printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Creating folders for media files in ./data/1-layout" >> "$workingDir/$eventslog"
 	for f in *.md; do
 		cleanname="([0-9]+)(-[a-z0-9_-]+)?\.md"
 		if [[ $f =~ $cleanname ]]; then
@@ -212,8 +212,8 @@ shopt -s nullglob # Sets nullglob
 		else
 			mediaFolder=$(echo $f | sed -r "s/\.md//")
 		fi
-		if [ ! -d "$workingDir/1-layout/$mediaFolder" ]; then
-			mkdir "$workingDir/1-layout/$mediaFolder"
+		if [ ! -d "$workingDir/data/1-layout/$mediaFolder" ]; then
+			mkdir "$workingDir/data/1-layout/$mediaFolder"
 		else
 			RERUN=true
 			#printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   ./archive/$dir/ already there" >> "$workingDir/$eventslog"
@@ -244,13 +244,13 @@ shopt -s nullglob # Sets nullglob
 	done
 
 	# archive editing-ready manuscripts in ./archive/editing-ready
-	printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Manuscripts are ready, archiving to ./archived/editing-ready/ and moving to ./1-layout/..." >> "$workingDir/$eventslog"
+	printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Manuscripts are ready, archiving to ./archived/editing-ready/ and moving to ./data/1-layout/..." >> "$workingDir/$eventslog"
 	for editing in *.md; do
-		if [ ! -e "$workingDir/1-layout/${editing}" ]; then
-			cp "$editing" "$workingDir/1-layout/"
+		if [ ! -e "$workingDir/data/1-layout/${editing}" ]; then
+			cp "$editing" "$workingDir/data/1-layout/"
 		else
 			echo "NOTICE: move ${editing} in ./layout/ with datestamp, another file was already there!"
-			cp "${editing}" "$workingDir/1-layout/${editing%.md}-$(date +"%Y-%m-%dT%H:%M:%S").md"
+			cp "${editing}" "$workingDir/data/1-layout/${editing%.md}-$(date +"%Y-%m-%dT%H:%M:%S").md"
 		fi
 		mv "$editing" "$workingDir/archive/editing-ready/${editing%.md}-$(date +"%Y-%m-%dT%H:%M:%S").md"
 		printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   $editing is ready" >> "$workingDir/$eventslog"
@@ -263,7 +263,7 @@ shopt -s nullglob # Sets nullglob
 		echo WARN=true >> $tempvar
 		echo KEEPDIR=true >> $tempvar
 	done
-	printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Manuscripts are processed and ready for editing in ./1-layout; each step has been archived with timestamp in ./archive" >> "$workingDir/$eventslog"
+	printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Manuscripts are processed and ready for editing in ./data/1-layout; each step has been archived with timestamp in ./archive" >> "$workingDir/$eventslog"
 
 ) # end subshell
 
@@ -287,4 +287,4 @@ else
 	rm -d $tempdir
 fi
 
-echo "All files are in ./1-layout, ready for editing. Each stage of the process has been logged and archived"
+echo "All files are in ./data/1-layout, ready for editing. Each stage of the process has been logged and archived"

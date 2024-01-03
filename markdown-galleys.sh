@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Convert each article from markdown ("./1-layout/" directory) to the final publication files (galleys), and save in "./2-publication/" directory. Al the events are logged.
+# Convert each article from markdown ("./data/1-layout/" directory) to the final publication files (galleys), and save in "./data/2-publication/" directory. Al the events are logged.
 # Also archive a backup copy of the markdown version and log all the events
 #
 # Author: Piero Grandesso
@@ -30,7 +30,7 @@ trap '[ "$?" -ne 77 ] || exit 77' ERR
 # 1. create directory structure for working and archiving, if not already there
 ######
 
-mkdir -p $workingDir/{archive/layout-versions,2-publication}
+mkdir -p $workingDir/data/{archive/layout-versions,2-publication}
 # creating only the directories pertaining this part of the workflow
 printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Preparing the directory structure, if not ready" >> "$workingDir/$eventslog"
 
@@ -106,30 +106,30 @@ get_info() {
 }
 
 # prepare daily subdirectory for layout-versions archiving
-mkdir -p $workingDir/archive/layout-versions/$today
+mkdir -p $workingDir/data/archive/layout-versions/$today
 
 # conversion functions
 converttohtml() {
 	# HTML conversion with Pandoc  --self-contained
-	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc --email-obfuscation=references --section-divs --self-contained --template="$workingDir/z-lib/article.html5" --write=html5 --default-image-extension=.low.jpg -o "$workingDir/2-publication/${manuscript%.md}.html"
+	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc --email-obfuscation=references --section-divs --self-contained --template="$workingDir/z-lib/article.html5" --write=html5 --default-image-extension=.low.jpg -o "$workingDir/data/2-publication/${manuscript%.md}.html"
 }
 converttopdf() {
 	echo $(sed -i -e 's/^\(#.*\)\.\s*$/\1/' $manuscript)
 	newtitle="$(make_title $manuscript)"
-	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" --lua-filter "$workingDir/z-lib/abstract-section.lua" -N --toc --listings --citeproc --template="$workingDir/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/2-publication/$newtitle.pdf"
+	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" --lua-filter "$workingDir/z-lib/abstract-section.lua" -N --toc --listings --citeproc --template="$workingDir/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/data/2-publication/$newtitle.pdf"
 	# LaTeX
-	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" --lua-filter "$workingDir/z-lib/abstract-section.lua" -N --toc --listings --citeproc --template="$workingDir/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/2-publication/$newtitle.tex"
+	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" --lua-filter "$workingDir/z-lib/abstract-section.lua" -N --toc --listings --citeproc --template="$workingDir/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/data/2-publication/$newtitle.tex"
 }
 converttoxml() {
 	# JATS XML
-	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc --template="$workingDir/z-lib/article.jats" --write=jats --default-image-extension=.jpg -s -o "$workingDir/2-publication/${manuscript%.md}.jats.xml"
+	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc --template="$workingDir/z-lib/article.jats" --write=jats --default-image-extension=.jpg -s -o "$workingDir/data/2-publication/${manuscript%.md}.jats.xml"
 	# TEI XML
-	#pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" --toc -N --filter=pandoc-citeproc --template="$workingDir/z-lib/article.tei" --write=tei -s -o "$workingDir/2-publication/${manuscript%.md}.tei.xml"
+	#pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" --toc -N --filter=pandoc-citeproc --template="$workingDir/z-lib/article.tei" --write=tei -s -o "$workingDir/data/2-publication/${manuscript%.md}.tei.xml"
 }
 # this is just a test
 converttoword() {
 	# DOCX format # --reference-doc="$workingDir/z-lib/article.docx"
-	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc  -w docx+styles  -s -o "$workingDir/2-publication/${manuscript%.md}.docx"
+	pandoc "$workingDir/z-lib/journal.yaml" "$workingDir/z-lib/issue.yaml" "${manuscript}" -N --toc --filter=pandoc-citeproc  -w docx+styles  -s -o "$workingDir/data/2-publication/${manuscript%.md}.docx"
 }
 # generic function that calls the specific conversions
 converttoformats() {
@@ -186,13 +186,13 @@ printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] command options: $PARSED" >> "$workingD
 if [ $NOOPT ] || [ -z ${@+x} ]; then
 	echo -e "\tno file specified"
 
-	printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts in ./1-layout..." >> "$workingDir/$eventslog"
+	printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts in ./data/1-layout..." >> "$workingDir/$eventslog"
 	( # start subshell
-		if cd ./1-layout ; then
+		if cd ./data/1-layout ; then
 			echo "Starting conversions..."
 		else
-			echo "WARNING: ./1-layout directory not found!"
-			printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] WARNING: ./1-layout directory not found! Aborting." >> "$workingDir/$eventslog"
+			echo "WARNING: ./data/1-layout directory not found!"
+			printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] WARNING: ./data/1-layout directory not found! Aborting." >> "$workingDir/$eventslog"
 			exit 77
 		fi
 
@@ -201,7 +201,7 @@ if [ $NOOPT ] || [ -z ${@+x} ]; then
 		if [ ${#EXT[@]} -gt 0 ]; then
 			: # valid files, ok
 		else
-			printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   [WARN] No valid files found in ./1-layout, exiting now" >> "$workingDir/$eventslog"
+			printf "\n[$(date +"%Y-%m-%d %H:%M:%S")]   [WARN] No valid files found in ./data/1-layout, exiting now" >> "$workingDir/$eventslog"
 			echo "WARNING: no valid files!"
 			exit 77
 		fi
@@ -221,11 +221,11 @@ else # we have a parameter: convert only specified file
 		manuscript="$( echo "$parameter" | sed -r 's/^\.?\/?1\-layout\///' )"
 
 		( # start subshell
-			if cd ./1-layout ; then
+			if cd ./data/1-layout ; then
 				echo "Starting conversions..."
 			else
-				echo "WARNING: ./1-layout directory not found!"
-				printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] WARNING: ./1-layout directory not found! Aborting." >> "$workingDir/$eventslog"
+				echo "WARNING: ./data/1-layout directory not found!"
+				printf "\n[$(date +"%Y-%m-%d %H:%M:%S")] WARNING: ./data/1-layout directory not found! Aborting." >> "$workingDir/$eventslog"
 				exit 77
 			fi
 
