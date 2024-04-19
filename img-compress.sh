@@ -54,7 +54,7 @@ PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTIONS --name "$0" -- "$@
 
 # keep track of every script run
 today=$(date +"%Y-%m-%d")
-eventslog="../../data/$today-events.log"
+eventslog="../$today-events.log"
 if [ ! -e "$eventslog" ]; then
 	echo "I am currently in $PWD and I couldn't find ${eventslog}:"
 	echo "is it the right place?"

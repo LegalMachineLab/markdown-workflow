@@ -10,14 +10,14 @@ journal:
 # fonts for PDF must be installed (than you can simple specify their family name, see "Libre Franklin" below)
 # or you can specify their path, like for Libre Baskerville:
 # mainfont: "LibreBaskerville-Regular.otf" # used for PDF body
-# mainfont: "TeX Gyre Termes"
+mainfont: "TeX Gyre Termes"
 # mainfontoptions:
 # - Path=/home/user/Fonts/libre-baskerville/
 # - BoldFont=LibreBaskerville-Bold.otf
 # - ItalicFont=LibreBaskerville-Italic.otf
 # - BoldItalicFont=LibreBaskerville-BoldItalic.otf
 # sansfont: "Libre Franklin" # used for PDF paratext and titles
-# sansfont: "TeX Gyre Termes"
+sansfont: "TeX Gyre Termes"
 #titlefont: # optional font for titles and headings
 
 # HTML

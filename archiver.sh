@@ -14,7 +14,7 @@
 if . ./z-lib/events-logger.sh ; then
 	echo "Starting events registration in $eventslog"
 	# set the current working directory for future cd
-	workingDir="$PWD/data"
+	workingDir="$PWD"
 else
 	echo "Something went wrong with event logger, aborting! (is ./z-lib/ in its place?)"
 	exit 1
