@@ -1,22 +1,23 @@
 ---
-# Journal Level Customizations
 journal:
-  title: "Journal Title -- A Fictional Scholarly Journal"
-  abbrev-title: "Journal Title"
-  eissn: "1234-567X" # optional
-  url: "https://example.org/"
+  title: "i-lex -- Rivista di Scienze Giuridiche, Scienze Cognitive ed Intelligenza Artificiale"
+  abbrev-title: "i-lex"
+  eissn: "1825-1927" # optional
+  url: "https://i-lex.unibo.it/"
 
 # style
 
 # fonts for PDF must be installed (than you can simple specify their family name, see "Libre Franklin" below)
 # or you can specify their path, like for Libre Baskerville:
-mainfont: "LibreBaskerville-Regular.otf" # used for PDF body
-mainfontoptions:
-- Path=/home/user/Fonts/libre-baskerville/
-- BoldFont=LibreBaskerville-Bold.otf
-- ItalicFont=LibreBaskerville-Italic.otf
-- BoldItalicFont=LibreBaskerville-BoldItalic.otf
-sansfont: "Libre Franklin" # used for PDF paratext and titles
+# mainfont: "LibreBaskerville-Regular.otf" # used for PDF body
+# mainfont: "TeX Gyre Termes"
+# mainfontoptions:
+# - Path=/home/user/Fonts/libre-baskerville/
+# - BoldFont=LibreBaskerville-Bold.otf
+# - ItalicFont=LibreBaskerville-Italic.otf
+# - BoldItalicFont=LibreBaskerville-BoldItalic.otf
+# sansfont: "Libre Franklin" # used for PDF paratext and titles
+# sansfont: "TeX Gyre Termes"
 #titlefont: # optional font for titles and headings
 
 # HTML

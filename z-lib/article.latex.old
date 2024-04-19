@@ -1,5 +1,4 @@
-% Options for packages loaded elsewhere
-\PassOptionsToPackage{unicode$for(hyperrefoptions)$,$hyperrefoptions$$endfor$}{hyperref}
+\PassOptionsToPackage{unicode=true}{hyperref} % options for packages loaded elsewhere
 \PassOptionsToPackage{hyphens}{url}
 $if(colorlinks)$
 % custom: no * to svgnames, causes some colors not to be recognized
@@ -14,7 +13,6 @@ $if(background-image)$
 \includegraphics[width=\paperwidth]{$background-image$}%
 }
 $endif$
-\usepackage{csquotes}
 \usepackage{pgfpages}
 \setbeamertemplate{caption}[numbered]
 \setbeamertemplate{caption label separator}{: }
@@ -218,11 +216,6 @@ $endif$
 $if(lhs)$
 \lstnewenvironment{code}{\lstset{language=Haskell,basicstyle=\small\ttfamily}}{}
 $endif$
-$if(listings-no-page-break)$
-\usepackage{etoolbox}
-\BeforeBeginEnvironment{lstlisting}{\par\noindent\begin{minipage}{\linewidth}}
-\AfterEndEnvironment{lstlisting}{\end{minipage}\par\addvspace{\topskip}}
-$endif$
 $if(highlighting-macros)$
 $highlighting-macros$
 $endif$
@@ -239,7 +232,6 @@ $else$
 \IfFileExists{footnote.sty}{\usepackage{footnote}\makesavenoteenv{longtable}}{}
 $endif$
 $endif$
-\usepackage{graphicx}
 $if(graphics)$
 \usepackage{graphicx,grffile}
 \makeatletter
@@ -330,27 +322,15 @@ $-- Various customizations --$
 \captionsetup[figure]{labelformat=empty}
 \captionsetup[table]{labelformat=empty}
 
-% Workaround/bugfix from jannick0.
-% See https://github.com/jgm/pandoc/issues/4302#issuecomment-360669013)
-% or https://github.com/Wandmalfarbe/pandoc-latex-template/issues/2
-%
-% Redefine the verbatim environment 'Highlighting' to break long lines (with
-% the help of fvextra). Redefinition is necessary because it is unlikely that
-% pandoc includes fvextra in the default template.
-\usepackage{fvextra}
-\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,fontsize=$if(code-block-font-size)$$code-block-font-size$$else$\footnotesize$endif$,commandchars=\\\{\}}
-
-\renewenvironment{quote}%
-               {\list{}{\rightmargin\leftmargin}%
-                \item[]\samepage}% <- The effect of \samepage is local!!!
-               {\endlist}
-
 % custom: icons
 % fix for custom icons (fontawesome), since TeXLive 2018
 \usepackage{fontspec}
 \defaultfontfeatures{Extension = .otf}
 \usepackage{academicons}
 \usepackage{fontawesome}
+
+% custom: ORCID color
+\definecolor{orcid}{HTML}{A2D03E}
 
 % custom: dates
 \usepackage[useregional]{datetime2}
@@ -379,35 +359,40 @@ $endif$
 \fancyhf{} % clear all default
 % left header
 $if(shorttitle)$
-\lhead{\footnotesize\sffamily $shorttitle$}
+\lhead{\small\sffamily $shorttitle$}
 $else$
-\lhead{\footnotesize\sffamily \truncate{$if(titletruncate)$$titletruncate$$else$9cm$endif$}{$title$}}
+\lhead{\small\sffamily \truncate{$if(titletruncate)$$titletruncate$$else$9cm$endif$}{$title$}}
 $endif$
 % right reader
 $if(journal.abbrev-title)$
-\rhead{\footnotesize\sffamily $journal.abbrev-title$$if(issuedisplay)$. $issuedisplay$$endif$}
+\rhead{\small\sffamily $journal.abbrev-title$$if(issuedisplay)$. $issuedisplay$$endif$}
 $else$
-\rhead{\footnotesize\sffamily $journal.title$$if(issuedisplay)$. $issuedisplay$$endif$}
+\rhead{\small\sffamily $journal.title$$if(issuedisplay)$. $issuedisplay$$endif$}
 $endif$
 % left footer (DOI)
 $if(article.doi)$
-\lfoot{\footnotesize\sffamily \url{https://doi.org/$article.doi$}}
+\lfoot{\small\sffamily \url{https://doi.org/$article.doi$}}
 $else$
-\lfoot{\footnotesize\sffamily \url{$journal.url$}}
+\lfoot{\small\sffamily \url{$journal.url$}}
 $endif$
 % right footer (ID (if issuepagination false) + page (with optional prefix))
-\rfoot{\footnotesize\sffamily $if(article.id)$$if(issuepagination)$$else$Art.~\#$article.id$ \\ p.$endif$$endif$$if(page.prefix)$ $page.prefix$$endif$ $if(draft)$\color{red} $endif$\thepage}
+\rfoot{\small\sffamily $if(article.id)$$if(issuepagination)$$else$Art.~\#$article.id$ \\ p.$endif$$endif$$if(page.prefix)$ $page.prefix$$endif$ $if(draft)$\color{red}$endif$\thepage}
 % custom: TEST for more behaved footnotes
 \usepackage{etoolbox}
 % no superscript footnote marks, by egreg from https://tex.stackexchange.com/a/96400
 \makeatletter
-\newcommand{\nosupmark@makefnmark}{\@thefnmark.}
+\newcommand{\nosupmark@makefnmark}{\@thefnmark}
 \pretocmd{\@makefntext}{\let\@makefnmark\nosupmark@makefnmark}{}{}
 
 % custom: footnotes in first page similar to normal ones
-\patchcmd\maketitle{\renewcommand\thefootnote{\@alph\c@footnote}}{\AdaptNote\thanks\multthanks}{}{}
-\patchcmd\maketitle{%
-  \def\@makefnmark{\rlap{\@textsuperscript{\normalfont\@thefnmark}}}}{}{}{}
+%\patchcmd\maketitle{\renewcommand\thefootnote{\@alph\c@footnote}}{\AdaptNote\thanks\multthanks}{}{}
+%\patchcmd\maketitle{%
+%  \def\@makefnmark{\rlap{\nosupmark{\normalfont\@thefnmark}}}}{}{}{} % era \@textsuperscript al posto di \nosupmark
+%%% By egreg from https://tex.stackexchange.com/a/136750
+%%% We don't want to redefine \@makefntext
+\patchcmd\maketitle{\@makefntext}{\@@@ddt}{}{}
+%%% We don't want to have \rlap around the footnote mark
+\patchcmd\maketitle{\rlap}{\mbox}{}{}
 \makeatother
 $if(thanksmarkseries)$
 % custom: footnotes in first page (thanks) not using fnsymbol (depends on \usepackage{titling})
@@ -425,7 +410,7 @@ $endif$
   \let\Begin\begin
   \let\End\end
 }
-\usepackage{soul}
+
 % custom: define \linethickness
 \renewcommand{\linethickness}{0.3pt}
 % custom: draft mark with date
@@ -437,6 +422,37 @@ $if(linenumbers)$
 \usepackage[pagewise, modulo]{lineno}
 \linenumbers
 $endif$
+$endif$
+
+% custom TEST: non hyphenation in email!
+\usepackage{hyphenat}
+
+% custom: better placement for figures
+\usepackage[section]{placeins}
+
+% custom TEST: larger space with authors (thanks to titling)
+%
+$if(institute)$
+\preauthor{\begin{center}
+  \large
+  \def\arraystretch{1.3}%
+  \begin{tabular}[t]{c}}
+\postauthor{\end{tabular}\par\end{center}
+  \begin{center}
+  {\footnotesize
+  \begin{tabular}[t]{c l}
+    $for(institute)$
+    $if(institute.index)$
+    \textsuperscript{$institute.index$} & $institute.name$
+    $elseif(institute.name)$ % we assume all authors share the same affiliation
+    $institute.name$
+    $else$ % we assume there is only one author
+    $for(author)$
+    $if(author.affiliation)$$author.affiliation$$endif$$endfor$
+    $endif$$sep$ \\
+    $endfor$
+  \end{tabular}}
+\end{center}}
 $endif$
 
 % set default figure placement to htbp
@@ -453,6 +469,13 @@ $if(lang)$
 $if(babel-newcommands)$
   $babel-newcommands$
 $endif$
+\else
+  % load polyglossia as late as possible as it *could* call bidi if RTL lang (e.g. Hebrew or Arabic)
+  \usepackage{polyglossia}
+  \setmainlanguage[$polyglossia-lang.options$]{$polyglossia-lang.name$}
+$for(polyglossia-otherlangs)$
+  \setotherlanguage[$polyglossia-otherlangs.options$]{$polyglossia-otherlangs.name$}
+$endfor$
 \fi
 $endif$
 $if(dir)$
@@ -482,50 +505,46 @@ $endif$
 $if(csl-refs)$
 \newlength{\cslhangindent}
 \setlength{\cslhangindent}{1.5em}
-\newenvironment{CSLReferences}%
+\newenvironment{cslreferences}%
   {$if(csl-hanging-indent)$\setlength{\parindent}{0pt}%
   \everypar{\setlength{\hangindent}{\cslhangindent}}\ignorespaces$endif$}%
   {\par}%
   \setlength{\parskip}{8pt plus 2pt minus 1pt}
 $endif$
 
+% TEST institutions
+\usepackage{setspace}
+
 $if(title)$
-\title{$if(blocktitle)$$blocktitle$$else$$title$$endif$$if(subtitle)$\\ \large $subtitle$$endif$$for(thanks)$\thanks{$thanks$}$sep$~~$endfor$$if(correction)$$if(correction.notice)$$else$$if(thanks)$~~$endif$\thanks{$correction.text$}$endif$$endif$}
+\title{$if(blocktitle)$$blocktitle$$else$$title$$endif$$for(thanks)$\thanks{$thanks$}$sep$~~~$endfor$$if(correction)$$if(correction.notice)$$else$$if(thanks)$~~~$endif$\thanks{$correction.text$}$endif$$endif$}
 $endif$
-
-\renewcommand{\thefootnote}{\fnsymbol{footnote}}
-
+$if(subtitle)$
+\providecommand{\subtitle}[1]{}
+\subtitle{$subtitle$}
+$endif$
 $if(author)$ % custom: affiliation only if "affiliationonly" is true, else boxed version below abstract
-\author{
-$for(author)$
-{\small $author.name$}
-$if(affiliationonly)$
-$if(author.institute)$
-$for(author.institute)$
-{\small\textsuperscript{$author.institute$}}
-$endfor$
+$if(institute)$ % TEST: derived from https://github.com/pandoc-scholar
+\author{$for(author)$$author.name$$if(author.corresp)$\thanks{\raggedright\nohyphens{{\scriptsize\faEnvelope}~$author.email$}}$endif$$if(author.orcid)$\textsuperscript{\href{$author.orcid$}{\color{orcid}{\aiOrcid}}}$endif$$if(author.institute_id)$\textsuperscript{\thinspace $for(author.institute_id)$$author.institute_id$$sep$,~$endfor$}$endif$$sep$ \and $endfor$}
+$else$
+\author{$for(author)$$author.name$$if(affiliationonly)$$if(author.affiliation)$\thanks{\raggedright $for(author.affiliation)$$author.affiliation$$sep$; $endfor$$if(author.corresp)$; \nohyphens{{\scriptsize\faEnvelope}~$author.email$}$endif$$if(author.orcid)$; \aiOrcid~\url{$author.orcid$}$endif$}$else$$if(author.corresp)$\thanks{{\scriptsize\faEnvelope}~$author.email$$if(author.orcid)$; \aiOrcid~\url{$author.orcid$}$endif$}$endif$$endif$$endif$$sep$ \and $endfor$}
 $endif$
-$if(author.email)$
-$else$$if(author.corresp)$\thanks{{\scriptsize\faEnvelope}~$author.email$$if(author.orcid)$; \aiOrcid~\url{$author.orcid$}$endif$}$endif$$endif$$endif$$sep$ \and $endfor$
-}
-$endif$
-
-\renewcommand{\thefootnote}{\arabic{footnote}}
-
+% custom: remove due to new author behaviour
+%$if(institute)$
+%\providecommand{\institute}[1]{}
+%\institute{$for(institute)$$institute$$sep$ \and $endfor$}
+%$endif$
 % custom: dates
 $if(date)$ % normal publication date (simple text)
 \date{\normalsize $date$}
 $else$
 $if(dates)$ % submitted, revised, accepted, published dates, in YYYY-MM-DD
 \date{\small $if(dates.submitted)$$localization.submitted$: \DTMdate{$dates.submitted$}$if(dates.accepted)$ -- $else$$if(dates.published)$ -- $endif$$endif$$endif$$if(dates.revised)$$localization.revised$: $for(dates.revised)$\DTMdate{$dates.revised$}$sep$; $endfor$ \\ $endif$$if(dates.accepted)$$localization.accepted$: \DTMdate{$dates.accepted$}$if(dates.published)$ -- $endif$$endif$$if(dates.published)$$localization.published$: $if(draft)$\color{red} $endif$\DTMdate{$dates.published$}$endif$}
-$else$
-\date{}
 $endif$
 $endif$ % end custom dates
 
 $-- custom: spacing for thanks (firstpage) --$
-%\setlength{\thanksmarkwidth}{1.8em}
-%\thanksfootextra{}{\hspace{5pt}}
+\setlength{\thanksmarkwidth}{1.8em}
+\thanksfootextra{}{\hspace{5pt}}
 
 $-- custom: hyphenation rules --$
 $if(hyphenation)$
@@ -559,57 +578,22 @@ $-- custom: first page header and footer --$
 \fancypagestyle{plain}{%
   \fancyhf{}%
   % right header: journal title (extended) and eISSN
-  \rhead{\footnotesize\sffamily $journal.title$$if(issuedisplay)$. $issuedisplay$$if(issuetitle)$ \\ $issuetitle$$endif$$endif$$if(journal.eissn)$ \\ ISSN~$journal.eissn$$endif$$if(extrarowheader)$ \\ \url{$journal.url$}$else$$if(editor)$ \\ \url{$journal.url$}$endif$$endif$}
+  \rhead{\small\sffamily $journal.title$$if(issuedisplay)$. $issuedisplay$$if(issuetitle)$ \\ $issuetitle$$endif$$endif$$if(journal.eissn)$ \\ ISSN~$journal.eissn$$endif$$if(extrarowheader)$ \\ \url{$journal.url$}$else$$if(editor)$ \\ \url{$journal.url$}$endif$$endif$}
   % left header: section, peer-reviewed plus DOI or journal url
   $if(article.section)$
-  \lhead{\footnotesize\sffamily $article.section$$if(article.peer-review)$ -- \emph{$localization.peer-reviewed$}$endif$
+  \lhead{\small\sffamily $article.section$$if(article.peer-review)$ -- \emph{$localization.peer-reviewed$}$endif$
   $if(editor)$ \\ $editor.text$$endif$$if(article.doi)$ \\ \url{https://doi.org/$article.doi$}$else$ \\ \url{$journal.url$}$endif$}
   $else$
-  $if(article.doi)$\lhead{\footnotesize\sffamily \url{$journal.url$} \\ \url{https://doi.org/$article.doi$}}$endif$
+  $if(article.doi)$\lhead{\small\sffamily \url{$journal.url$} \\ \url{https://doi.org/$article.doi$}}$endif$
   $endif$
   % right footer (ID + page (with optional prefix))
-  \rfoot{\footnotesize\sffamily $if(article.id)$Art.~\#$article.id$ \\ p.$endif$$if(page.prefix)$ $page.prefix$$endif$ $if(draft)$\color{red} $endif$\thepage}
+  \rfoot{\small\sffamily $if(issuepagination)$$else$$if(article.id)$Art.~\#$article.id$ \\ p.$endif$$endif$$if(page.prefix)$ $page.prefix$$endif$ $if(draft)$\color{red} $endif$\thepage}
   $if(copyright)$
   % left footer: copyright block
-  \lfoot{
-  \scriptsize\sffamily
-  Copyright \copyright~$if(copyright.year)$$copyright.year$$endif$ $if(copyright.holder)$$copyright.holder$$endif$ \\ $if(copyright.text)$$copyright.text$ \\$endif$ $if(copyright.link)$\url{$copyright.link$}$endif$
-  }
+  \lfoot{\small\sffamily Copyright \copyright~$if(copyright.year)$$copyright.year$$endif$ $if(copyright.holder)$$copyright.holder$$endif$ \\ $if(copyright.text)$$copyright.text$ \\$endif$ $if(copyright.link)$\url{$copyright.link$}$endif$}
   $endif$
 }
 $endif$
-
-\begin{figure}[!b]
-\begin{minipage}{0.9\textwidth}
-\scriptsize\sffamily
-\faEnvelope
-$for(author)$
-$if(author.email)$~$author.email$$endif$ ($author.name$);
-$endfor$\\
-\aiOrcid
-$for(author)$
-$if(author.orcid)$~\url{$author.orcid$}$endif$ ($author.name$);
-$endfor$
-\end{minipage}
-\end{figure}
-
-$if(institute)$
-\newenvironment*{institute}{}{}
-\begin{institute}
-%\setlength{\parindent}{5em}
-%\begin{enumerate}
-\footnotesize
-%$for(institute)$
-%\item $institute.name$
-%$endfor$
-%\end{enumerate}
-%\institute{$for(institute)${$institute$}$sep$ \and $endfor$}
-$for(institute)$
-\textsuperscript{$institute.id$} $institute.name$\\
-$endfor$
-\end{institute}
-$endif$
-
 $if(abstract)$ % custom: abstract name and style
 % custom if othertitle:
 $if(othertitle)$
@@ -626,7 +610,7 @@ $if(keywords)$\vspace{1mm}\\ \textbf{$localization.keywords$}: $for(keywords)$$k
 \end{abstract}
 $endif$
 $if(acknowledgements)$ % custom: acknowledgements
-\vspace{1.5em}
+\vspace{$if(ackspace)$$ackspace$$else$1.5em$endif$}
 \renewcommand{\abstractname}{$localization.acknowledgements$}
 \begin{abstract}
 $if(indent)$\par\noindent $else$\setlength{\parindent}{0pt}
@@ -650,13 +634,14 @@ $for(author)$ % custom: author block with email, orcid and bio
 \begin{samepage}
 \renewcommand{\abstractname}{$author.name$$if(author.affiliation)$:$endif$}
 \begin{abstract} % was \sffamily
-\footnotesize $for(author.affiliation)$$author.affiliation$$sep$; $endfor$
+\small $for(author.affiliation)$$author.affiliation$$sep$; $endfor$
 $if(author.orcid)$ \\ \aiOrcid~\url{$author.orcid$}$endif$$if(author.corresp)$\\ {\scriptsize\faEnvelope}~$author.email$$if(author.url)$;  {\scriptsize\faExternalLink}~\url{$author.url$}$endif$$else$$if(author.url)$\\ {\scriptsize\faExternalLink}~\url{$author.url$}$endif$$endif$$if(author.bio)$ \\ $author.bio$$endif$
 \end{abstract}
 \end{samepage}
 $endfor$
 $endif$
 $endif$ % if(title)
+
 $for(include-before)$
 $include-before$
 
@@ -690,11 +675,16 @@ $if(notitlepage)$
 $if(titlepagespace)$
 \vspace{$titlepagespace$}
 $else$
-\vspace{1cm}
+\vspace{5cm}
 $endif$
 $else$
 \newpage
 $endif$
+% custom TEST: fnmark with full point
+% it's here to avoid breaking \thanks
+\makeatletter
+\renewcommand{\nosupmark@makefnmark}{\@thefnmark.}
+\makeatother
 $body$
 
 $if(natbib)$
@@ -732,6 +722,9 @@ $-- custom: end article author box --$
 $if(closingauthorbox)$
 $if(authorspagebreak)$ % custom: put authors in a second page
 \newpage
+$elseif(customboxspacing)$
+\vspace{$customboxspacing$}
+\vspace*{\fill} % push to the bottom
 $else$
 \vspace{2em} % ia safe spacing if lots of authors
 \vspace*{\fill} % push to the bottom
@@ -741,13 +734,13 @@ $endif$
  {\par\medskip}
 $for(author)$ % custom: author block with email, orcid and bio
 \begin{samepage}
-\renewcommand{\abstractname}{$author.name$$if(author.affiliation)$:$endif$}
+\renewcommand{\abstractname}{$author.name$}
 \begin{abstract} % was \sffamily
-\small $for(author.affiliation)$$author.affiliation$$sep$; $endfor$
+$if(author.affiliation)$-- $endif$\small $for(author.affiliation)$$author.affiliation$$sep$; $endfor$
 $if(author.orcid)$ \\ \aiOrcid~\url{$author.orcid$}$endif$$if(author.corresp)$\\ {\scriptsize\faEnvelope}~$author.email$$if(author.url)$;  {\scriptsize\faExternalLink}~\url{$author.url$}$endif$$else$$if(author.url)$\\ {\scriptsize\faExternalLink}~\url{$author.url$}$endif$$endif$$if(author.bio)$ \\ $author.bio$$endif$
 \end{abstract}
 \end{samepage}
-$endfor$
+$sep$$if(authorsep)$\vspace{$authorsep$}$endif$$endfor$
 $endif$
 $for(include-after)$
 $include-after$

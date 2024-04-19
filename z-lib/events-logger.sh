@@ -58,8 +58,8 @@ if [ ! -e "$eventslog" ]; then
 		printf '%b\n' "backup\t$(date +"%Y-%m-%d %H:%M:%S")" >> ${backup_path%/}/$journal_shortname-backup.log
 	fi
 
-	touch "$eventslog" && echo "Creating today's events log"
+	touch "data/$eventslog" && echo "Creating today's events log"
 else
 	echo "Today's events log does exist"
-	printf '%b\n' "\n######\n" >> "$eventslog" # add separator
+	printf '%b\n' "\n######\n" >> "data/$eventslog" # add separator
 fi

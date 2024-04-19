@@ -189,7 +189,7 @@ if [ -z ${@+x} ]; then
 		if [ ${#EXT[@]} -gt 0 ]; then
 			: # valid files, ok
 		else
-			printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   [WARN] No valid files found in ./1-layout, exiting now" >> "../$eventslog"
+			printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   [WARN] No valid files found in ./1-layout, exiting now" >> "$eventslog"
 			echo "WARNING: no valid files!"
 			exit 77
 		fi

@@ -25,7 +25,7 @@
 if . ./z-lib/events-logger.sh ; then
 	echo "Starting events registration in $eventslog"
 	# set the current working directory for future cd
-	workingDir="$PWD"
+	workingDir="$PWD/data"
 else
 	echo "Something went wrong with event logger, aborting! (is ./z-lib/ in its place?)"
 	exit 1
@@ -80,7 +80,7 @@ tempvar=`mktemp "$workingDir/tmp-values.XXXXXXXXX.sh"`
 ######
 printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts from ./0-original..." >> "$workingDir/$eventslog"
 ( # start subshell
-	if cd ./0-original ; then
+	if cd "$workingDir/0-original" ; then
 		:
 	else
 		# if "old" original folder...
@@ -117,10 +117,14 @@ printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts
 		if [ "${manuscript}" != "${manuscript%.${EXT1}}" ]; then
 			printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   ${manuscript}: trying to convert it in Markdown..." >> "$workingDir/$eventslog"
 			# actual conversion with Pandoc
-			if pandoc --wrap=none --markdown-headings=atx -o "$tempdir/${manuscript%.${EXT1}}.md" "$manuscript" ; then
+			safename=$(echo "${manuscript%.${EXT1}}" | tr "[:upper:]" "[:lower:]" | tr "[:blank:]" "_")
+			if pandoc --wrap=none --markdown-headings=atx -s -t markdown-simple_tables-multiline_tables-grid_tables --extract-media="${safename}_media" -o "$tempdir/${manuscript%.${EXT1}}.md" "$manuscript" ; then
+				# Extract media from the docx file
+				mv "${safename%.*}_media" "../1-layout/${safename%.*}_media"
+				# unzip -j "$manuscript" "word/media/*" -d "$workingDir/1-layout/${manuscript%.${EXT1}}_media"
 				printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   ... ${manuscript} was converted!" >> "$workingDir/$eventslog"
 				# archive the processed manuscript
-				mv "$manuscript" "$workingDir/archive/original-version/${manuscript%.${EXT1}}-$(date +"%Y-%m-%dT%H-%M-%S").${EXT1}"
+				# mv "$manuscript" "$workingDir/archive/original-version/${manuscript%.${EXT1}}-$(date +"%Y-%m-%dT%H-%M-%S").${EXT1}"
 				printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   ${manuscript} archived" >> "$workingDir/$eventslog"
 			else
 				# pandoc returned errors, print a warning and don't archive
@@ -202,11 +206,13 @@ shopt -s nullglob # Sets nullglob
 			# rename keeping only relevant part and transforming to lowercase
 			cleanname=$(echo "$oldname" | sed -r "s/$ojs2name/\1.md/" | tr "[:upper:]" "[:lower:]")
 			mv "$oldname" "$cleanname"
+			# mv "${oldname%.*}_media" "${cleanname%.*}_media"
 			printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   $oldname renamed as $cleanname" >> "$workingDir/$eventslog"
 		elif [[ "$oldname" =~ "$ojs3name" ]]; then
 			# rename keeping only relevant part and transforming to lowercase
 			cleanname=$(echo "$oldname" | sed -r "s/$ojs3name/\1.md/" | tr "[:upper:]" "[:lower:]")
 			mv "$oldname" "$cleanname"
+			# mv "${oldname%.*}_media" "${cleanname%.*}_media"
 			printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   $oldname renamed as $cleanname" >> "$workingDir/$eventslog"
 		elif [[ "$oldname" =~ "$goodname" ]]; then
 			# rename keeping only relevant part and transforming to lowercase
@@ -215,6 +221,7 @@ shopt -s nullglob # Sets nullglob
 				echo "$oldname does not need to be renamed"
 			else
 				mv "$oldname" "$cleanname"
+				# mv "${oldname%.*}_media" "${cleanname%.*}_media"
 				printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   $oldname renamed as $cleanname" >> "$workingDir/$eventslog"
 			fi
 		else
@@ -224,6 +231,8 @@ shopt -s nullglob # Sets nullglob
 				echo "$oldname does not need to be renamed"
 			else
 				mv "$oldname" "$safename"
+				# mv "../0-original/${oldname%.*}_media" "${safename%.*}_media"
+				# mv "../0-original/${oldname%.*}_media" "../1-layout/${oldname%.*}_media"
 				printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   [WARN] $oldname has an unexpected name, converted in a safer one!" >> "$workingDir/$eventslog"
 				echo WARN=true >> "$tempvar"
 			fi
@@ -245,7 +254,7 @@ shopt -s nullglob # Sets nullglob
 			name="${f%.md}"
 			mediaFolder="${name%%-*}_media"
 		else
-			mediaFolder=$(echo $f | sed -r "s/\.md//")
+			mediaFolder=$(echo $f | sed -r "s/\.md//")_media
 		fi
 		if [ ! -d "$workingDir/1-layout/$mediaFolder" ]; then
 			mkdir "$workingDir/1-layout/$mediaFolder"
@@ -263,7 +272,7 @@ shopt -s nullglob # Sets nullglob
 
 	# add empty YAML at the start of each article
 	printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] Prepending metadata YAML..." >> "$workingDir/$eventslog"
-	yaml_file="$workingDir/z-lib/article.yaml"
+	yaml_file="$workingDir/../z-lib/article.yaml"
 	size=$(wc -c < "$yaml_file")
 
 	for file in *.md; do
@@ -283,6 +292,7 @@ shopt -s nullglob # Sets nullglob
 	for editing in *.md; do
 		if [ ! -e "$workingDir/1-layout/${editing}" ]; then
 			cp "$editing" "$workingDir/1-layout/"
+			# cp -r "${edisting%.*}_media" "$workingDir/1-layout/"
 		else
 			echo "NOTICE: move ${editing} in ./layout/ with datestamp, another file was already there!"
 			cp "${editing}" "$workingDir/1-layout/${editing%.md}-$(date +"%Y-%m-%dT%H-%M-%S").md"
