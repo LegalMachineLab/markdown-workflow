@@ -5,8 +5,9 @@ RUN apt update \
     && rm -rf /var/lib/apt/lists/*
 # ENV PANDOC_VERSION=$(curl -o /dev/null -sL -w %{url_effective} https://github.com/jgm/pandoc/releases/latest | cut -d"/" -f8)
 ENV PANDOC_VERSION=3.1.13
-run wget https://github.com/jgm/pandoc/releases/download/$PANDOC_VERSION/pandoc-$PANDOC_VERSION-1-amd64.deb \
+RUN wget https://github.com/jgm/pandoc/releases/download/$PANDOC_VERSION/pandoc-$PANDOC_VERSION-1-amd64.deb \
     && apt install ./pandoc-$PANDOC_VERSION-1-amd64.deb -y
+COPY extension/markdownworkflow-0.0.1.vsix /
 workdir /app
 copy . /app
 # Change the ownership of the working directory to the non-root user "user"

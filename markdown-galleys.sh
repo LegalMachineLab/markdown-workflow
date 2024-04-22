@@ -13,7 +13,7 @@
 # 0. events log and other checks
 #####
 # also: am I in the right place? (is there z-lib folder?)
-ROOT="$(dirname "$0")"
+ROOT="$(realpath $(dirname $0))"
 # ROOT="$( dirname -- "${BASH_SOURCE[0]:-$0}")";
 if . $ROOT/z-lib/events-logger.sh ; then
 	echo "Starting events registration in $eventslog"
@@ -25,6 +25,11 @@ else
 fi
 printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] markdown-galleys.sh started running, logging events" >> "$workingDir/$eventslog"
 
+volume=$(grep volume "$workingDir/issue.yaml" | cut -d'"' -f2)
+issue=$(grep issue: "$workingDir/issue.yaml" | cut -d'"' -f2)
+year=$(grep year "$workingDir/issue.yaml" | cut -d'"' -f2)
+ISSUE="$year-$volume-$issue"
+
 # trap for exiting while in subshell
 set -E
 trap '[ "$?" -ne 77 ] || exit 77' ERR
@@ -34,7 +39,7 @@ trap '[ "$?" -ne 77 ] || exit 77' ERR
 # 1. create directory structure for working and archiving, if not already there
 ######
 
-mkdir -p $workingDir/{archive/layout-versions,2-publication}
+mkdir -p $workingDir/{archive-$ISSUE/layout-versions,2-publication}
 # creating only the directories pertaining this part of the workflow
 printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] Preparing the directory structure, if not ready" >> "$workingDir/$eventslog"
 
@@ -74,7 +79,7 @@ The following options are supported:
 -x, --xml       convert only in JATS XML
 -w, --word      convert only in DOCX
                   (useful for additional copyediting or antiplagiarism)
--b, --backup    don't convert, just backup in ./archive/layout-versions/
+-b, --backup    don't convert, just backup in ./archive-$ISSUE/layout-versions/
 
 EOF
 }
@@ -139,29 +144,29 @@ fi
 ######
 
 # prepare daily subdirectory for layout-versions archiving
-mkdir -p "$workingDir/archive/layout-versions/$today"
+mkdir -p "$workingDir/archive-$ISSUE/layout-versions/$today"
 
 # conversion functions
 converttohtml() {
 	# HTML conversion with Pandoc  --embed-resources --standalone
-	pandoc "$ROOT/z-lib/journal.yaml" "$ROOT/z-lib/issue.yaml" "${manuscript}" ${sectionNum} --toc --citeproc --email-obfuscation=references --section-divs --embed-resources --standalone --template="$ROOT/z-lib/article.html5" --write=html5 --default-image-extension=.low.jpg -o "$workingDir/2-publication/${manuscript%.md}.html"
+	pandoc "$ROOT/z-lib/journal.yaml" "$workingDir/issue.yaml" "${manuscript}" ${sectionNum} --toc --citeproc --email-obfuscation=references --section-divs --embed-resources --standalone --template="$ROOT/z-lib/article.html5" --write=html5 --default-image-extension=.low.jpg -o "$workingDir/2-publication/${manuscript%.md}.html"
 }
 converttopdf() {
 	# PDF conversion with Pandoc # -N --toc
-	pandoc "$ROOT/z-lib/journal.yaml" "$ROOT/z-lib/issue.yaml" "${manuscript}" ${sectionNum} --lua-filter="$ROOT/z-lib/abstract-section.lua" --toc --citeproc --template="$ROOT/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/2-publication/${manuscript%.md}.pdf"
+	pandoc "$ROOT/z-lib/journal.yaml" "$workingDir/issue.yaml" "${manuscript}" ${sectionNum} --lua-filter="$ROOT/z-lib/abstract-section.lua" --toc --citeproc --template="$ROOT/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/2-publication/${manuscript%.md}.pdf"
 	# LaTeX
-	pandoc "$ROOT/z-lib/journal.yaml" "$ROOT/z-lib/issue.yaml" "${manuscript}" ${sectionNum} --lua-filter="$ROOT/z-lib/abstract-section.lua" --toc --citeproc --template="$ROOT/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/2-publication/${manuscript%.md}.tex"
+	pandoc "$ROOT/z-lib/journal.yaml" "$workingDir/issue.yaml" "${manuscript}" ${sectionNum} --lua-filter="$ROOT/z-lib/abstract-section.lua" --toc --citeproc --template="$ROOT/z-lib/article.latex" --pdf-engine=xelatex --default-image-extension=.jpg -s -o "$workingDir/2-publication/${manuscript%.md}.tex"
 }
 converttoxml() {
 	# JATS XML
-	pandoc "$ROOT/z-lib/journal.yaml" "$ROOT/z-lib/issue.yaml" "${manuscript}" ${sectionNum} --toc --citeproc --template="$ROOT/z-lib/article.jats" --write=jats --wrap=none --default-image-extension=.jpg -s -o "$workingDir/2-publication/${manuscript%.md}.jats.xml"
+	pandoc "$ROOT/z-lib/journal.yaml" "$workingDir/issue.yaml" "${manuscript}" ${sectionNum} --toc --citeproc --template="$ROOT/z-lib/article.jats" --write=jats --wrap=none --default-image-extension=.jpg -s -o "$workingDir/2-publication/${manuscript%.md}.jats.xml"
 	# TEI XML
-	#pandoc "$ROOT/z-lib/journal.yaml" "$ROOT/z-lib/issue.yaml" "${manuscript}" --toc ${sectionNum} --citeproc --template="$ROOT/z-lib/article.tei" --write=tei -s -o "$workingDir/2-publication/${manuscript%.md}.tei.xml"
+	#pandoc "$ROOT/z-lib/journal.yaml" "$workingDir/issue.yaml" "${manuscript}" --toc ${sectionNum} --citeproc --template="$ROOT/z-lib/article.tei" --write=tei -s -o "$workingDir/2-publication/${manuscript%.md}.tei.xml"
 }
 # this is just a test
 converttoword() {
 	# DOCX format # --reference-doc="$ROOT/z-lib/article.docx"
-	pandoc "$ROOT/z-lib/journal.yaml" "$ROOT/z-lib/issue.yaml" "${manuscript}" ${sectionNum} --toc --citeproc  -w docx+styles  -s -o "$workingDir/2-publication/${manuscript%.md}.docx"
+	pandoc "$ROOT/z-lib/journal.yaml" "$workingDir/issue.yaml" "${manuscript}" ${sectionNum} --toc --citeproc  -w docx+styles  -s -o "$workingDir/2-publication/${manuscript%.md}.docx"
 }
 # generic function that calls the specific conversions
 converttoformats() {
@@ -181,11 +186,11 @@ converttoformats() {
 		if [ $p ] || [ $h ] || [ $x ] || [ $w ]; then
 			echo -e "\tconverting only to the specified formats"
 		else
-			echo -e "\tno options given, preparing all formats"
-			printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   no options given, preparing all formats" >> "$workingDir/$eventslog"
-			converttohtml
+			echo -e "\tno options given, preparing pdf format"
+			# printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   no options given, preparing all formats" >> "$workingDir/$eventslog"
+			# converttohtml
 			converttopdf
-			converttoxml
+			# converttoxml
 			# no converttoword, use it only when explicitly requested
 		fi
 
@@ -207,7 +212,7 @@ converttoformats() {
 	fi # end check on backup
 
 	# archive the processed manuscript
-	cp "$manuscript" "$workingDir/archive/layout-versions/$today/${manuscript%.md}-$(date +"%Y-%m-%dT%H-%M-%S").md"
+	cp "$manuscript" "$workingDir/archive-$ISSUE/layout-versions/$today/${manuscript%.md}-$(date +"%Y-%m-%dT%H-%M-%S").md"
 	printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   copy of ${manuscript%.md} archived" >> "$workingDir/$eventslog"
 }
 

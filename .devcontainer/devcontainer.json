@@ -4,7 +4,15 @@
 	"name": "MarkdownWorkflow",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	// "image": "mcr.microsoft.com/devcontainers/base:bullseye"
-	"build": {
-		"dockerfile": "../Dockerfile"
+	"image": "markdownworkflow",
+	// "build": {
+	// 	"dockerfile": "../Dockerfile"
+	// },
+	"customizations": {
+		"vscode": { 
+			"extensions": [
+				"/markdownworkflow-0.0.1.vsix"
+			]
+		}
 	}
 }

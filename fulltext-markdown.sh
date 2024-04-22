@@ -22,7 +22,7 @@
 # 0. events log and other checks
 #####
 # also: am I in the right place? (is there z-lib folder?)
-ROOT=$(dirname "$0")
+ROOT="$(realpath $(dirname $0))"
 if . $ROOT/z-lib/events-logger.sh ; then
 	echo "Starting events registration in $eventslog"
 	# set the current working directory for future cd
@@ -55,16 +55,23 @@ EOF
 if [[ $# -eq 0 ]] ; then
 	# no given arguments (correct!)
 	printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] fulltext-markdown.sh started running, logging events" >> "$workingDir/$eventslog"
+# elif [[ $@ == "--noninteractive" ]]; then
+# 	"$ROOT/issue_metadata.sh"
 else
 	printHelp
 	exit 0
 fi
 
+# Create issue yaml file
+volume=$(grep volume "$workingDir/issue.yaml" | cut -d'"' -f2)
+issue=$(grep issue: "$workingDir/issue.yaml" | cut -d'"' -f2)
+year=$(grep year "$workingDir/issue.yaml" | cut -d'"' -f2)
+ISSUE="$year-$volume-$issue"
 
 ######
 # 1. create directory structure for working and archiving, if not already there
 ######
-mkdir -p "$workingDir"/{archive/{original-version,first-conversion,editing-ready},1-layout}
+mkdir -p "$workingDir"/{archive-$ISSUE/{original-version,first-conversion,editing-ready},1-layout}
 
 # creating only the directories pertaining to this part of the workflow
 printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] Preparing the directory structure, if not ready" >> "$workingDir/$eventslog"
@@ -125,7 +132,7 @@ printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts
 				# unzip -j "$manuscript" "word/media/*" -d "$workingDir/1-layout/${manuscript%.${EXT1}}_media"
 				printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   ... ${manuscript} was converted!" >> "$workingDir/$eventslog"
 				# archive the processed manuscript
-				# mv "$manuscript" "$workingDir/archive/original-version/${manuscript%.${EXT1}}-$(date +"%Y-%m-%dT%H-%M-%S").${EXT1}"
+				# mv "$manuscript" "$workingDir/archive-$ISSUE/original-version/${manuscript%.${EXT1}}-$(date +"%Y-%m-%dT%H-%M-%S").${EXT1}"
 				printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   ${manuscript} archived" >> "$workingDir/$eventslog"
 			else
 				# pandoc returned errors, print a warning and don't archive
@@ -138,7 +145,7 @@ printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts
 			if pandoc --wrap=none --markdown-headings=atx -o "$tempdir/${manuscript%.${EXT2}}.md" "$manuscript" ; then
 				printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   ... ${manuscript} was converted!" >> "$workingDir/$eventslog"
 				# archive the processed manuscript
-				mv "$manuscript" "$workingDir/archive/original-version/${manuscript%.${EXT2}}-$(date +"%Y-%m-%dT%H-%M-%S").${EXT2}"
+				mv "$manuscript" "$workingDir/archive-$ISSUE/original-version/${manuscript%.${EXT2}}-$(date +"%Y-%m-%dT%H-%M-%S").${EXT2}"
 				printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   ${manuscript} archived" >> "$workingDir/$eventslog"
 			else
 				# pandoc returned errors, print a warning and don't archive
@@ -151,7 +158,7 @@ printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts
 			if pandoc --wrap=none --markdown-headings=atx -o "$tempdir/${manuscript%.${EXT3}}.md" "$manuscript" ; then
 				printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   ... ${manuscript} was converted!" >> "$workingDir/$eventslog"
 				# archive the processed manuscript
-				mv "$manuscript" "$workingDir/archive/original-version/${manuscript%.${EXT3}}-$(date +"%Y-%m-%dT%H-%M-%S").${EXT3}"
+				mv "$manuscript" "$workingDir/archive-$ISSUE/original-version/${manuscript%.${EXT3}}-$(date +"%Y-%m-%dT%H-%M-%S").${EXT3}"
 				printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   ${manuscript} archived" >> "$workingDir/$eventslog"
 			else
 				# pandoc returned errors, print a warning and don't archive
@@ -160,7 +167,7 @@ printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] Starting conversion of manuscripts
 			fi
 		fi
 	done
-	printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] Original manuscripts are archived in ./archive/original-version with timestamp; something left behind?..." >> "$workingDir/$eventslog"
+	printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] Original manuscripts are archived in ./archive-$ISSUE/original-version with timestamp; something left behind?..." >> "$workingDir/$eventslog"
 
 	# check if any file is left behind in ./0-original
 	for manuscript in * .*; do
@@ -185,10 +192,10 @@ shopt -s nullglob # Sets nullglob
 		printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] WARNING: temporary working directory not found! Aborting." >> "$workingDir/$eventslog"
 		exit 77
 	fi
-	printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] Archiving newly converted manuscripts in ./archive/first-conversion..." >> "$workingDir/$eventslog"
+	printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] Archiving newly converted manuscripts in ./archive-$ISSUE/first-conversion..." >> "$workingDir/$eventslog"
 	for oldname in *.md; do
 		# copy to archive
-		cp "$oldname" "$workingDir/archive/first-conversion/${oldname%.md}-$(date +"%Y-%m-%dT%H-%M-%S").md"
+		cp "$oldname" "$workingDir/archive-$ISSUE/first-conversion/${oldname%.md}-$(date +"%Y-%m-%dT%H-%M-%S").md"
 		printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   $oldname archived" >> "$workingDir/$eventslog"
 	done
 
@@ -261,7 +268,7 @@ shopt -s nullglob # Sets nullglob
 			mkdir "$workingDir/1-layout/$mediaFolder"
 		else
 			RERUN=true
-			#printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   ./archive/$dir/ already there" >> "$workingDir/$eventslog"
+			#printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   ./archive-$ISSUE/$dir/ already there" >> "$workingDir/$eventslog"
 		fi
 	done
 	if [ $RERUN ]; then
@@ -288,7 +295,7 @@ shopt -s nullglob # Sets nullglob
 		fi
 	done
 
-	# archive editing-ready manuscripts in ./archive/editing-ready
+	# archive editing-ready manuscripts in ./archive-$ISSUE/editing-ready
 	printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")] Manuscripts are ready, archiving to ./archived/editing-ready/ and moving to ./1-layout/..." >> "$workingDir/$eventslog"
 	for editing in *.md; do
 		if [ ! -e "$workingDir/1-layout/${editing}" ]; then
@@ -298,7 +305,7 @@ shopt -s nullglob # Sets nullglob
 			echo "NOTICE: move ${editing} in ./layout/ with datestamp, another file was already there!"
 			cp "${editing}" "$workingDir/1-layout/${editing%.md}-$(date +"%Y-%m-%dT%H-%M-%S").md"
 		fi
-		mv "$editing" "$workingDir/archive/editing-ready/${editing%.md}-$(date +"%Y-%m-%dT%H-%M-%S").md"
+		mv "$editing" "$workingDir/archive-$ISSUE/editing-ready/${editing%.md}-$(date +"%Y-%m-%dT%H-%M-%S").md"
 		printf '%b\n' "[$(date +"%Y-%m-%d %H:%M:%S")]   $editing is ready" >> "$workingDir/$eventslog"
 	done
 
