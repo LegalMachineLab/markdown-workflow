@@ -8,8 +8,8 @@ ENV PANDOC_VERSION=3.1.13
 RUN wget https://github.com/jgm/pandoc/releases/download/$PANDOC_VERSION/pandoc-$PANDOC_VERSION-1-amd64.deb \
     && apt install ./pandoc-$PANDOC_VERSION-1-amd64.deb -y
 COPY extension/markdownworkflow-0.0.1.vsix /
-workdir /app
-copy . /app
+WORKDIR /app
+COPY . /app
 # Change the ownership of the working directory to the non-root user "user"
 RUN chown -R 1000:1000 /app
 ENV PATH="${PATH}:/app"
