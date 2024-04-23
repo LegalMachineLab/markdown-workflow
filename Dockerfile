@@ -11,4 +11,4 @@ COPY extension/markdownworkflow-0.0.1.vsix /
 WORKDIR /app
 COPY --chown=1000:1000 z-lib /app/z-lib
 COPY --chown=1000:1000 *.sh /app
-ENV PATH="${PATH}:/app"
+ENV PATH="/app:${PATH}"

@@ -14,21 +14,31 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('markdownworkflow.fulltext-markdown', async () => {
 			await setIssueMetadata();
 			const terminal = vscode.window.createTerminal(`Markdown Workflow terminal`);
-			terminal.show();
+			// terminal.show();
 		    terminal.sendText("fulltext-markdown.sh");
+			// terminal.dispose();
 		})
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('markdownworkflow.markdown-galleys', () => {
+		vscode.commands.registerCommand('markdownworkflow.markdown-galleys', (all_files = false) => {
 			var path = "";
-			var currentlyOpenTabFilePath = vscode.window.activeTextEditor?.document.uri.fsPath;
-			if (currentlyOpenTabFilePath && currentlyOpenTabFilePath.endsWith(".md")) {
-				path = currentlyOpenTabFilePath;
+			if (all_files) {
+				var currentlyOpenTabFilePath = vscode.window.activeTextEditor?.document.uri.fsPath;
+				if (currentlyOpenTabFilePath && currentlyOpenTabFilePath.endsWith(".md")) {
+					path = vscode.workspace.asRelativePath(currentlyOpenTabFilePath);
+				}
 			}
 			const terminal = vscode.window.createTerminal(`Markdown Workflow terminal`);
-			terminal.show();
+			// terminal.show();
 		    terminal.sendText("markdown-galleys.sh --pdf " + path);
+			// terminal.dispose();
+		})
+	);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('markdownworkflow.markdown-galleys-all', () => {
+			vscode.commands.executeCommand('markdownworkflow.markdown-galleys', true);
 		})
 	);
 }
@@ -71,7 +81,6 @@ year: "` + values[0] + `"
 issuedisplay: "Vol. ` + values[2] + ` n. ` + values[1] + ` (` + values[0] + `)" # how you are going to show in PDF & HTML the issue reference
 ---
 `;
-
 		await vscode.workspace.fs.writeFile(vscode.Uri.file(basePath), new TextEncoder().encode(issueContent));
 	}
 }

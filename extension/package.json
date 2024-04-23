@@ -15,13 +15,39 @@
     "commands": [
       {
         "command": "markdownworkflow.fulltext-markdown",
-        "title": "Fulltext Markdown"
+        "title": "Fulltext Markdown",
+        "icon": "$(markdown)"
       },
       {
         "command": "markdownworkflow.markdown-galleys",
-        "title": "Markdown Galleys"
+        "title": "Make PDF",
+        "icon": "$(file-pdf)"
+      },
+      {
+        "command": "markdownworkflow.markdown-galleys-all",
+        "title": "Make PDF All",
+        "icon": "$(file-pdf)"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "markdownworkflow.fulltext-markdown",
+          "group": "navigation"
+        },
+        {
+          "command": "markdownworkflow.markdown-galleys-all",
+          "group": "navigation"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "markdownworkflow.markdown-galleys",
+          "group": "navigation",
+          "when": "resourceExtname == .md"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

@@ -11,7 +11,7 @@
 	"customizations": {
 		"vscode": { 
 			"extensions": [
-				"/markdownworkflow-0.0.1.vsix"
+				"./markdownworkflow-0.0.1.vsix"
 			]
 		}
 	}
