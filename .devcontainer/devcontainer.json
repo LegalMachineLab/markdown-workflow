@@ -4,9 +4,8 @@
 	"name": "MarkdownWorkflowDev",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	// "image": "mcr.microsoft.com/devcontainers/base:bullseye"
-	"build": {
-		"dockerfile": "../Dockerfile"
-	},
+		// "dockerfile": "../Dockerfile"
+	"image": "ghcr.io/legalmachinelab/markdown-workflow:main",
 	"customizations": {
 		"vscode": { 
 			"extensions": [
