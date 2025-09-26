@@ -1,6 +1,6 @@
 FROM pandoc/latex:latest-ubuntu
 ARG DEBIAN_FRONTEND=noninteractive
-ARG USERNAME=vscode
+ARG USERNAME=ubuntu
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 # Create the user
@@ -13,6 +13,7 @@ RUN apt update \
 # ENV PANDOC_VERSION=3.1.13
 # RUN wget https://github.com/jgm/pandoc/releases/download/$PANDOC_VERSION/pandoc-$PANDOC_VERSION-1-amd64.deb \
 #     && apt install ./pandoc-$PANDOC_VERSION-1-amd64.deb -y
+RUN tlmgr update --self
 RUN tlmgr install footmisc sectsty titling academicons fvextra lineno fontawesome datetime2 truncate
 WORKDIR /app
 COPY --chown=1000:1000 extension/markdownworkflow-0.0.1.vsix /app

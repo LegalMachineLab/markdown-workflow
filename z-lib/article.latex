@@ -587,24 +587,14 @@ $endif$
 $for(author)$
 $if(author.email)$~$author.email$$endif$ ($author.name$);
 $endfor$\\
-\aiOrcid
-$for(author)$
-$if(author.orcid)$~\url{$author.orcid$}$endif$ ($author.name$);
-$endfor$
+$for(author)$$if(author.orcid)$\aiOrcid$break$$endif$$endfor$$for(author)$$if(author.orcid)$~\url{$author.orcid$} ($author.name$);$endif$$endfor$
 \end{minipage}
 \end{figure}
 
 $if(institute)$
 \newenvironment*{institute}{}{}
 \begin{institute}
-%\setlength{\parindent}{5em}
-%\begin{enumerate}
 \footnotesize
-%$for(institute)$
-%\item $institute.name$
-%$endfor$
-%\end{enumerate}
-%\institute{$for(institute)${$institute$}$sep$ \and $endfor$}
 $for(institute)$
 \textsuperscript{$institute.id$} $institute.name$\\
 $endfor$
